@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "mocha src/**/*.test.js",
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha src/**/*.test.js",
     "test-watch": "nodemon --exec 'yarn test'"
   },
   "dependencies": {
