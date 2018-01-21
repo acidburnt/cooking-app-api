@@ -14,6 +14,7 @@ const port = process.env.PORT;
 const app = express();
 app.use(bodyParser.json());
 
+// Routes for Recipes
 app.post('/recipes', (req, res) => {
   const recipe = new Recipe(req.body);
   recipe.save().then(
@@ -76,6 +77,20 @@ app.patch('/recipes/:id', (req, res) => {
     }
     return res.send({ recipe });
   }).catch(e => res.status(400).send(e));
+});
+
+// POST /users
+app.post('/users', (req, res) => {
+  const body = _.pick(req.body, ['email', 'password']);
+  const user = new User(body);
+
+  user.save().then(() => {
+    return user.generateAuthToken();
+  }).then((token) => {
+    res.header('x-auth', token).send(user);
+  }).catch((e) => {
+    res.status(400).send(e);
+  });
 });
 
 app.listen(port, () => {
