@@ -209,7 +209,7 @@ describe('POST /users', () => {
           expect(user).toBeTruthy();
           // expect(user.password).toNotBe(password);
           done();
-        });
+        }).catch(e => done(e));
       });
 
   });
@@ -230,5 +230,44 @@ describe('POST /users', () => {
       .send({ email, password })
       .expect(400)
       .end(done);
+  });
+});
+
+describe('POST /user/login', () => {
+  it('should login user and return auth token', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({
+        email: users[1].email,
+        password: users[1].password,
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toBeTruthy();
+      })
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        User.findByIdAndUpdate(users[1]._id)
+          .then((user) => {
+            expect(user.tokens[0].token).toEqual(res.headers['x-auth']);
+            done();
+          }).catch(e => done(e));
+      });
+  });
+  it('should reject invalid login', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({
+        email: users[1].email,
+        password: 'jaja',
+      })
+      .expect(400)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toBeFalsy();
+        done();
+      })
+      .catch(e => done(e));
   });
 });
