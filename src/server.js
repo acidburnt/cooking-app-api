@@ -29,14 +29,14 @@ app.post('/recipes', authenticate, (req, res) => {
   );
 });
 
-app.get('/recipes', authenticate, (req, res) => {
-  Recipe.find({ creator: req.user._id }).then(
+app.get('/recipes', (req, res) => {
+  Recipe.find({}).then(
     recipes => res.send({ recipes }),
     e => res.status(400).send(e),
   );
 });
 
-app.get('/recipes/:id', authenticate, (req, res) => {
+app.get('/recipes/:id', (req, res) => {
   const { id } = req.params;
 
   if (!ObjectID.isValid(id)) {
@@ -44,7 +44,6 @@ app.get('/recipes/:id', authenticate, (req, res) => {
   }
   Recipe.findOne({
     _id: id,
-    creator: req.user._id,
   }).then(
     (recipe) => {
       if (!recipe) {

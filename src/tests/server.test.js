@@ -66,20 +66,18 @@ describe('GET /recipes', () => {
   it('should get all recipes', (done) => {
     request(app)
       .get('/recipes')
-      .set('x-auth', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
-        expect(res.body.recipes.length).toBe(1);
+        expect(res.body.recipes.length).toBe(2);
       })
       .end(done);
   });
 });
 
-describe('GET /recipes:id', () => {
+describe('GET /recipes/:id', () => {
   it('should return correct recipe', (done) => {
     request(app)
       .get(`/recipes/${dummyData[0]._id.toHexString()}`)
-      .set('x-auth', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body.recipe.title).toBe(dummyData[0].title);
@@ -90,7 +88,6 @@ describe('GET /recipes:id', () => {
     const randomId = new ObjectID().toHexString();
     request(app)
       .get(`/recipes/${randomId}`)
-      .set('x-auth', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -98,13 +95,6 @@ describe('GET /recipes:id', () => {
   it('should return 404 for non-object IDs', (done) => {
     request(app)
       .get('/recipes/123')
-      .set('x-auth', users[0].tokens[0].token)
-      .expect(404)
-      .end(done);
-  });
-  it('should not return recipe created by other user', (done) => {
-    request(app)
-      .get(`/recipes/${dummyData[1]._id.toHexString()}`)
       .set('x-auth', users[0].tokens[0].token)
       .expect(404)
       .end(done);
