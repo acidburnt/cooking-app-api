@@ -113,3 +113,38 @@ describe('GET /recipes:id', () => {
       .end(done);
   });
 });
+
+describe('DELETE /recipes:id', () => {
+  it('should remove a recipe', (done) => {
+    const idToRemove = dummyData[1]._id.toHexString();
+    request(app)
+      .delete(`/recipes/${idToRemove}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.recipe._id).toBe(idToRemove);
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        Recipe.findById(idToRemove).then((recipe) => {
+          expect(recipe).toBeFalsy();
+          done();
+        }).catch(e => done(e));
+      });
+  });
+  it('should return 404 if recipe not found', (done) => {
+    const randomId = new ObjectID().toHexString();
+    request(app)
+      .delete(`/recipes/${randomId}`)
+      .expect(404)
+      .end(done);
+  });
+
+  it('should return 404 for non-object IDs', (done) => {
+    request(app)
+      .delete('/recipes/123')
+      .expect(404)
+      .end(done);
+  });
+});
