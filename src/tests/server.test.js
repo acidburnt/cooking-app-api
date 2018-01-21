@@ -4,34 +4,17 @@ const { ObjectID } = require('mongodb');
 
 const { app } = require('./../server');
 const { Recipe } = require('./../models/Recipe');
+const { User } = require('./../models/User');
 
-const dummyData = [
-  {
-    _id: new ObjectID(),
-    title: 'ziemniaczki',
-    ingredients: ['burak', 'kalafior', 'cebula'],
-    instructions: 'ugotowac wode i dziala',
-  },
-  {
-    _id: new ObjectID(),
-    title: 'kalafiorowa',
-    ingredients: ['burak', 'kalafior', 'japka'],
-    instructions: 'zagotowac wode i dziala',
-  },
-  {
-    _id: new ObjectID(),
-    title: 'zupa z trupa',
-    ingredients: ['burak', 'buraczek'],
-    instructions: 'obrac buraki',
-  },
-];
+const {
+  dummyData,
+  populateRecipes,
+  populateUsers,
+  users,
+} = require('./seed/seed');
 
-
-beforeEach((done) => {
-  Recipe.remove({}).then(() => {
-    return Recipe.insertMany(dummyData);
-  }).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateRecipes);
 
 describe('POST /recipes', () => {
   it('should create a new recipe', (done) => {
@@ -178,6 +161,74 @@ describe('PATCH /recipes:id', () => {
         expect(res.body.recipe.ingredients).toEqual(dummyData[1].ingredients);
         expect(res.body.recipe.instructions).toEqual(dummyData[1].instructions);
       })
+      .end(done);
+  });
+});
+
+describe('GET /user/me', () => {
+  it('should return user if authenticated', (done) => {
+    request(app)
+      .get('/users/me')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        expect(res.body.email).toBe(users[0].email);
+      })
+      .end(done);
+  });
+  it('should return 401 if not authenticated', (done) => {
+    request(app)
+      .get('/users/me')
+      .expect(401)
+      .expect((res) => {
+        expect(res.body).toEqual({});
+      })
+      .end(done);
+  });
+});
+
+describe('POST /users', () => {
+  it('should create a user', (done) => {
+    const email = 'examle@gmail.com';
+    const password = 'password123!';
+    request(app)
+      .post('/users')
+      .send({ email, password })
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toBeTruthy();
+        expect(res.body._id).toBeTruthy();
+        expect(res.body.email).toBe(email);
+      })
+      .end((err) => {
+        if (err) {
+          return done(err);
+        }
+        User.findOne({ email }).then((user) => {
+          expect(user).toBeTruthy();
+          // expect(user.password).toNotBe(password);
+          done();
+        });
+      });
+
+  });
+  it('return validation errors is request invalid', (done) => {
+    const email = 'ziemni';
+    const password = 'password123!';
+    request(app)
+      .post('/users')
+      .send({ email, password })
+      .expect(400)
+      .end(done);
+  });
+  it('should not create user if email is in DB', (done) => {
+    const email = 'locky@gmail.com';
+    const password = 'userOnePass';
+    request(app)
+      .post('/users')
+      .send({ email, password })
+      .expect(400)
       .end(done);
   });
 });
