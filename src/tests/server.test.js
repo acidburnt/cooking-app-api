@@ -1,3 +1,4 @@
+
 const expect = require('expect');
 const request = require('supertest');
 const { ObjectID } = require('mongodb');
@@ -34,7 +35,7 @@ describe('POST /recipes', () => {
         if (err) {
           return done(err);
         }
-        Recipe.find({ title: 'testing ziemniaczki' }).then((recipes) => {
+        return Recipe.find({ title: 'testing ziemniaczki' }).then((recipes) => {
           expect(recipes.length).toBe(1);
           expect(recipes[0].title).toBe(body.title);
           done();
@@ -205,7 +206,7 @@ describe('POST /users', () => {
         if (err) {
           return done(err);
         }
-        User.findOne({ email }).then((user) => {
+        return User.findOne({ email }).then((user) => {
           expect(user).toBeTruthy();
           // expect(user.password).toNotBe(password);
           done();
@@ -269,5 +270,22 @@ describe('POST /user/login', () => {
         done();
       })
       .catch(e => done(e));
+  });
+});
+describe('DELETE /users/me/token', () => {
+  it('should remove auth token on logout', (done) => {
+    request(app)
+      .delete('/users/me/token')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .end((err) => {
+        if (err) {
+          return done(err);
+        }
+        return User.findById(users[0]._id).then((user) => {
+          expect(user.tokens.length).toBe(0);
+          done();
+        }).catch(e => done(e));
+      });
   });
 });
