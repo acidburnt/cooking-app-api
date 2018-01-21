@@ -12,6 +12,7 @@
     "test-watch": "nodemon --exec 'yarn test'"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "jsonwebtoken": "^8.1.0",
