@@ -8,6 +8,9 @@ const { mongoose } = require('./db/mongoose');
 const { Recipe } = require('./models/Recipe');
 const { User } = require('./models/User');
 
+// middleware
+const { authenticate } = require('./middleware/authenticate');
+
 // setting up the port
 const port = process.env.PORT;
 
@@ -91,6 +94,11 @@ app.post('/users', (req, res) => {
   }).catch((e) => {
     res.status(400).send(e);
   });
+});
+
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
 });
 
 app.listen(port, () => {
