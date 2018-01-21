@@ -148,3 +148,36 @@ describe('DELETE /recipes:id', () => {
       .end(done);
   });
 });
+
+describe('PATCH /recipes:id', () => {
+  const idToUpdate = dummyData[1]._id.toHexString();
+  it('should update the title', (done) => {
+    request(app)
+      .patch(`/recipes/${idToUpdate}`)
+      .send({
+        title: 'kalafiorowa testowa',
+        ingredients: ['burak', 'kalafior', 'japka'],
+        instructions: 'zagotowac wode i dziala',
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.recipe.title).toBe('kalafiorowa testowa');
+      })
+      .end(done);
+  });
+  it('should update only requested fields', (done) => {
+    request(app)
+      .patch(`/recipes/${idToUpdate}`)
+      .send({
+        title: 'kalafiorowa testowa',
+        ingredients: ['burak', 'kalafior', 'japka'],
+        instructions: 'zagotowac wode i dziala',
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.recipe.ingredients).toEqual(dummyData[1].ingredients);
+        expect(res.body.recipe.instructions).toEqual(dummyData[1].instructions);
+      })
+      .end(done);
+  });
+});
