@@ -20,12 +20,13 @@ beforeEach(populateRecipes);
 describe('POST /recipes', () => {
   it('should create a new recipe', (done) => {
     const body = {
-      title: 'testing ziemniaczki',
+      title: 'obiad',
       ingredients: ['burak', 'kalafior', 'buraczek'],
       instructions: 'zagotowac wode i dziala',
     };
     request(app)
       .post('/recipes')
+      .set('x-auth', users[0].tokens[0].token)
       .send(body)
       .expect(200)
       .expect((res) => {
@@ -35,7 +36,7 @@ describe('POST /recipes', () => {
         if (err) {
           return done(err);
         }
-        return Recipe.find({ title: 'testing ziemniaczki' }).then((recipes) => {
+        return Recipe.find({ title: 'obiad' }).then((recipes) => {
           expect(recipes.length).toBe(1);
           expect(recipes[0].title).toBe(body.title);
           done();
@@ -46,6 +47,7 @@ describe('POST /recipes', () => {
   it('should not create recipe with invalid data', (done) => {
     request(app)
       .post('/recipes')
+      .set('x-auth', users[0].tokens[0].token)
       .send({})
       .expect(400)
       .end((err) => {
@@ -53,7 +55,7 @@ describe('POST /recipes', () => {
           return done(err);
         }
         return Recipe.find().then((recipes) => {
-          expect(recipes.length).toBe(3);
+          expect(recipes.length).toBe(2);
           done();
         }).catch(error => done(error));
       });
@@ -64,9 +66,10 @@ describe('GET /recipes', () => {
   it('should get all recipes', (done) => {
     request(app)
       .get('/recipes')
+      .set('x-auth', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
-        expect(res.body.recipes.length).toBe(3);
+        expect(res.body.recipes.length).toBe(1);
       })
       .end(done);
   });
@@ -76,6 +79,7 @@ describe('GET /recipes:id', () => {
   it('should return correct recipe', (done) => {
     request(app)
       .get(`/recipes/${dummyData[0]._id.toHexString()}`)
+      .set('x-auth', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body.recipe.title).toBe(dummyData[0].title);
@@ -86,6 +90,7 @@ describe('GET /recipes:id', () => {
     const randomId = new ObjectID().toHexString();
     request(app)
       .get(`/recipes/${randomId}`)
+      .set('x-auth', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -93,6 +98,14 @@ describe('GET /recipes:id', () => {
   it('should return 404 for non-object IDs', (done) => {
     request(app)
       .get('/recipes/123')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(404)
+      .end(done);
+  });
+  it('should not return recipe created by other user', (done) => {
+    request(app)
+      .get(`/recipes/${dummyData[1]._id.toHexString()}`)
+      .set('x-auth', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -103,6 +116,7 @@ describe('DELETE /recipes:id', () => {
     const idToRemove = dummyData[1]._id.toHexString();
     request(app)
       .delete(`/recipes/${idToRemove}`)
+      .set('x-auth', users[1].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body.recipe._id).toBe(idToRemove);
@@ -117,10 +131,27 @@ describe('DELETE /recipes:id', () => {
         }).catch(e => done(e));
       });
   });
+  it('should not remove recipe of other user', (done) => {
+    const idToRemove = dummyData[0]._id.toHexString();
+    request(app)
+      .delete(`/recipes/${idToRemove}`)
+      .set('x-auth', users[1].tokens[0].token)
+      .expect(404)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        Recipe.findById(idToRemove).then((recipe) => {
+          expect(recipe).toBeTruthy();
+          done();
+        }).catch(e => done(e));
+      });
+  });
   it('should return 404 if recipe not found', (done) => {
     const randomId = new ObjectID().toHexString();
     request(app)
       .delete(`/recipes/${randomId}`)
+      .set('x-auth', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -128,6 +159,7 @@ describe('DELETE /recipes:id', () => {
   it('should return 404 for non-object IDs', (done) => {
     request(app)
       .delete('/recipes/123')
+      .set('x-auth', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -138,6 +170,7 @@ describe('PATCH /recipes:id', () => {
   it('should update the title', (done) => {
     request(app)
       .patch(`/recipes/${idToUpdate}`)
+      .set('x-auth', users[1].tokens[0].token)
       .send({
         title: 'kalafiorowa testowa',
         ingredients: ['burak', 'kalafior', 'japka'],
@@ -149,12 +182,27 @@ describe('PATCH /recipes:id', () => {
       })
       .end(done);
   });
-  it('should update only requested fields', (done) => {
+
+  it('should not be able update the title as other user', (done) => {
     request(app)
       .patch(`/recipes/${idToUpdate}`)
+      .set('x-auth', users[0].tokens[0].token)
       .send({
         title: 'kalafiorowa testowa',
         ingredients: ['burak', 'kalafior', 'japka'],
+        instructions: 'zagotowac wode i dziala',
+      })
+      .expect(404)
+      .end(done);
+  });
+
+  it('should update only requested fields', (done) => {
+    request(app)
+      .patch(`/recipes/${idToUpdate}`)
+      .set('x-auth', users[1].tokens[0].token)
+      .send({
+        title: 'kalafiorowa testowa',
+        ingredients: ['burak', 'kalafior', 'banany'],
         instructions: 'zagotowac wode i dziala',
       })
       .expect(200)
@@ -252,7 +300,7 @@ describe('POST /user/login', () => {
         }
         User.findByIdAndUpdate(users[1]._id)
           .then((user) => {
-            expect(user.tokens[0].token).toEqual(res.headers['x-auth']);
+            expect(user.tokens[1].token).toEqual(res.headers['x-auth']);
             done();
           }).catch(e => done(e));
       });

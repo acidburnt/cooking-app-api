@@ -18,28 +18,34 @@ const app = express();
 app.use(bodyParser.json());
 
 // Routes for Recipes
-app.post('/recipes', (req, res) => {
-  const recipe = new Recipe(req.body);
+app.post('/recipes', authenticate, (req, res) => {
+  const recipe = new Recipe({
+    ...req.body,
+    creator: req.user._id,
+  });
   recipe.save().then(
     doc => res.send(doc),
     e => res.status(400).send(e),
   );
 });
 
-app.get('/recipes', (req, res) => {
-  Recipe.find().then(
+app.get('/recipes', authenticate, (req, res) => {
+  Recipe.find({ creator: req.user._id }).then(
     recipes => res.send({ recipes }),
     e => res.status(400).send(e),
   );
 });
 
-app.get('/recipes/:id', (req, res) => {
+app.get('/recipes/:id', authenticate, (req, res) => {
   const { id } = req.params;
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-  Recipe.findById(id).then(
+  Recipe.findOne({
+    _id: id,
+    creator: req.user._id,
+  }).then(
     (recipe) => {
       if (!recipe) {
         return res.status(404).send({ msg: 'Not in DB.' });
@@ -50,14 +56,17 @@ app.get('/recipes/:id', (req, res) => {
   ).catch(error => res.status(400).send(error));
 });
 
-app.delete('/recipes/:id', (req, res) => {
+app.delete('/recipes/:id', authenticate, (req, res) => {
   const { id } = req.params;
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
-  Recipe.findByIdAndRemove(id).then(
+  Recipe.findOneAndRemove({
+    _id: id,
+    creator: req.user._id,
+  }).then(
     (recipe) => {
       if (!recipe) {
         return res.status(404).send({ msg: 'Not in DB.' });
@@ -68,13 +77,13 @@ app.delete('/recipes/:id', (req, res) => {
   ).catch(error => res.status(400).send(error));
 });
 
-app.patch('/recipes/:id', (req, res) => {
+app.patch('/recipes/:id', authenticate, (req, res) => {
   const { id } = req.params;
   const body = _.pick(req.body, ['title', 'ingredients', 'instructions']);
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-  Recipe.findByIdAndUpdate(id, { $set: body }, { new: true }).then((recipe) => {
+  Recipe.findOneAndUpdate({ _id: id, creator: req.user._id }, { $set: body }, { new: true }).then((recipe) => {
     if (!recipe) {
       return res.status(404).send();
     }

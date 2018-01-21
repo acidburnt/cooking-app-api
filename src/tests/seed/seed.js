@@ -18,6 +18,10 @@ const users = [{
   _id: userTwoId,
   email: 'test@test.com',
   password: 'userTwoPass',
+  tokens: [{
+    access: 'auth',
+    token: jwt.sign({ _id: userTwoId, access: 'auth' }, 'abc123'),
+  }]
 }];
 
 const dummyData = [
@@ -26,18 +30,14 @@ const dummyData = [
     title: 'ziemniaczki',
     ingredients: ['burak', 'kalafior', 'cebula'],
     instructions: 'ugotowac wode i dziala',
+    creator: userOneId,
   },
   {
     _id: new ObjectID(),
     title: 'kalafiorowa',
-    ingredients: ['burak', 'kalafior', 'japka'],
+    ingredients: ['burak', 'kalafior', 'banany'],
     instructions: 'zagotowac wode i dziala',
-  },
-  {
-    _id: new ObjectID(),
-    title: 'zupa z trupa',
-    ingredients: ['burak', 'buraczek'],
-    instructions: 'obrac buraki',
+    creator: userTwoId,
   },
 ];
 

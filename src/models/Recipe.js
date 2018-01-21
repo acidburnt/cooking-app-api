@@ -20,7 +20,10 @@ const RecipeSchema = new mongoose.Schema({
     minlength: 1,
     trim: true,
   },
-
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
 });
 
 const Recipe = mongoose.model('Recipe', RecipeSchema);
