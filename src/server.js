@@ -82,12 +82,13 @@ app.patch('/recipes/:id', authenticate, (req, res) => {
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-  Recipe.findOneAndUpdate({ _id: id, creator: req.user._id }, { $set: body }, { new: true }).then((recipe) => {
-    if (!recipe) {
-      return res.status(404).send();
-    }
-    return res.send({ recipe });
-  }).catch(e => res.status(400).send(e));
+  Recipe.findOneAndUpdate({ _id: id, creator: req.user._id }, { $set: body }, { new: true })
+    .then((recipe) => {
+      if (!recipe) {
+        return res.status(404).send();
+      }
+      return res.send({ recipe });
+    }).catch(e => res.status(400).send(e));
 });
 
 // POST /users
