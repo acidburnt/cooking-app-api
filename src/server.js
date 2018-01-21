@@ -34,13 +34,32 @@ app.get('/recipes/:id', (req, res) => {
   Recipe.findById(id).then(
     (recipe) => {
       if (!recipe) {
-        return res.status(404).send({ msg: 'nie ma w bazie' });
+        return res.status(404).send({ msg: 'Not in DB.' });
       }
       return res.status(200).send({ recipe });
     },
     e => res.status(400).send(e),
   ).catch(error => res.status(400).send(error));
 });
+
+app.delete('/recipes/:id', (req, res) => {
+  const { id } = req.params;
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  Recipe.findByIdAndRemove(id).then(
+    (recipe) => {
+      if (!recipe) {
+        return res.status(404).send({ msg: 'Not in DB.' });
+      }
+      return res.status(200).send({ recipe });
+    },
+    e => res.status(400).send(e),
+  ).catch(error => res.status(400).send(error));
+});
+
 
 app.listen(port, () => {
   console.log(`Started up on port ${port}.`);
