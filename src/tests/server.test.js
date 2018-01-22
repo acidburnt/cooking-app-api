@@ -1,4 +1,4 @@
-
+/* eslint-disable */
 const expect = require('expect');
 const request = require('supertest');
 const { ObjectID } = require('mongodb');
@@ -21,8 +21,9 @@ describe('POST /recipes', () => {
   it('should create a new recipe', (done) => {
     const body = {
       title: 'obiad',
+      description: 'super danie na kazda okazje',
       ingredients: ['burak', 'kalafior', 'buraczek'],
-      instructions: 'zagotowac wode i dziala',
+      steps: 'zagotowac wode i dziala',
     };
     request(app)
       .post('/recipes')

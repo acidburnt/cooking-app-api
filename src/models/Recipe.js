@@ -5,6 +5,7 @@ const RecipeSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 1,
+    maxlength: 100,
     trim: true,
     unique: true,
   },
@@ -12,13 +13,23 @@ const RecipeSchema = new mongoose.Schema({
     type: Array,
     required: true,
     minlength: 1,
+    maxlength: 20,
     trim: true,
   },
-  instructions: {
-    type: String,
+  steps: {
+    type: Array,
     required: true,
     minlength: 1,
+    maxlength: 30,
     trim: true,
+  },
+  img_url: {
+    type: String,
+    required: false,
+    minlength: 1,
+    maxlength: 300,
+    trim: true,
+    unique: false,
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,

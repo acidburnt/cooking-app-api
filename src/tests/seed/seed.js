@@ -29,14 +29,15 @@ const dummyData = [
     _id: new ObjectID(),
     title: 'ziemniaczki',
     ingredients: ['burak', 'kalafior', 'cebula'],
-    instructions: 'ugotowac wode i dziala',
+    steps: ['step1', 'step2', 'step3', 'step4', 'step5'],
     creator: userOneId,
   },
   {
     _id: new ObjectID(),
     title: 'kalafiorowa',
+    description: 'Lorem ipsum dolor sit amet consectetur, adipisicing elit. Minima, enim? Quisquam aliquid dolore neque ratione totam quam magnam assumenda maiores a voluptates, reiciendis numquam dolorem sapiente, ducimus, eius laudantium corporis?',
     ingredients: ['burak', 'kalafior', 'banany'],
-    instructions: 'zagotowac wode i dziala',
+    steps: ['step1', 'step2', 'step3', 'step4', 'step5'],
     creator: userTwoId,
   },
 ];
