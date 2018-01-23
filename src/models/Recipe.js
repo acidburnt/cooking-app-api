@@ -29,7 +29,6 @@ const RecipeSchema = new mongoose.Schema({
     minlength: 1,
     maxlength: 300,
     trim: true,
-    unique: true,
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
